@@ -1,0 +1,50 @@
+pragma cashscript ^0.6.0;
+
+contract Pokemon(bytes20 owner) {
+    // Require pk to match stored owner and signature to match
+    function spend(pubkey pk, sig s) {
+        require(hash160(pk) == owner);
+        require(checkSig(s, pk));
+    }
+
+    /**
+    * Can only be called by the creater of the contract.
+    */
+    function createNFTGroup(
+        pubkey pk,
+        sig s,
+        string actionType,
+        string symbol,
+        string name,
+        string documentURI,
+        string documentHash,
+        int minerFee,
+    ) {  
+        require(hash160(pk) == owner);
+        require(checkSig(s, pk));
+
+        bytes announcement = new OutputNullData([
+            0x534c5000,
+            0x81,
+            bytes(actionType),
+            bytes(symbol),
+            bytes(name),
+            bytes(documentURI),
+            bytes(documentHash),
+            0x00,
+            0x02,
+            0x0000000000000000
+        ]);
+        // Calculate leftover money after fee (1000 sats)
+        // Add change output if the remainder can be used
+        // otherwise donate the remainder to the miner
+        // int minerFee = 1000;
+        int changeAmount = int(bytes(tx.value)) - minerFee;
+        if (changeAmount >= (minerFee / 2)) {
+            bytes32 change = new OutputP2SH(bytes8(changeAmount), hash160(tx.bytecode));
+            require(tx.hashOutputs == hash256(announcement + change));
+        } else {
+            require(tx.hashOutputs == hash256(announcement));
+        }
+    }
+}

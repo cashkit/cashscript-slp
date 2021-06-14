@@ -1,7 +1,7 @@
-import logo from './logo.svg';
-import Genesis from './components/genesis';
-import Mint from './components/mint';
-import Send from './components/send';
+
+// import SLP from './Tokens';
+import NFT from './NFT';
+
 import './App.css'
 import "../node_modules/bulma/bulma.sass";
 import './App.sass'
@@ -13,12 +13,8 @@ function App() {
           Tokens on Bitcoin Cash(BCH)
       </header>
       <body className="container ">
-        <div className="title mt-3">SLP</div>
-        <div className="columns">
-          <Genesis></Genesis>
-          <Mint></Mint>
-          <Send></Send>
-        </div>
+        {/* <SLP></SLP> */}
+        <NFT></NFT>
       </body>
     </div>
   );

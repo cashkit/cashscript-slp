@@ -9,7 +9,8 @@ import { ContractHelper } from './helper';
 const bitbox = new BITBOX();
 
 const TokenTypes = {
-  One: '0x01',
+  Group: '0x81',
+  Clild: '0x41'
 }
 
 const ActionTypes = {
@@ -19,19 +20,18 @@ const ActionTypes = {
   COMMIT: 'COMMIT'
 }
 
-const defaultSymbol = 'POKE'
-const defaultName = 'Pokemon'
+const defaultSymbol = 'PNG'
+const defaultName = 'Pokemon NFT Group'
 const defaultDocumentURI = ' '
 const defaulDocumentHash = 'CE114E4501D2F4E2DCEA3E17B546F339'
-const defaultDecimals = '0x08'
+const defaultDecimals = '0x00'
 const defaulBaton = '0x02'
-const defaultInitialQuantity = '0x5F5E10'
-//const defaultInitialQuantity = '100000000'
+const defaultInitialQuantity = '0x0000000000000000'
 
 
 const Genesis = () => {
   const lokadId = '0x534c5000'
-  const [tokenType, setTokenType] = useState(TokenTypes.One)
+  const [tokenType, setTokenType] = useState(TokenTypes.Group)
   const [actionType, setActionType] = useState(ActionTypes.GENESIS)
   const [symbol, setSymbol] = useState(defaultSymbol)
   const [name, setName] = useState(defaultName)
@@ -114,7 +114,7 @@ const Genesis = () => {
         "\n actionType", actionType,
         "\n symbol", symbol,
         "\n name", name,
-        "\n documentURI", documentURI,
+        "\n documentURI", documentURI, 
         "\n documentHash", documentHash,
         "\n decimals", decimals,
         "\n baton", baton,
@@ -127,7 +127,7 @@ const Genesis = () => {
     // .send()
 
     const tx = await contract.functions
-      .createToken(
+      .createNFTGroup(
         alicePk,
         new SignatureTemplate(alice),
         actionType,
@@ -147,12 +147,12 @@ const Genesis = () => {
         decimals, // Decimals
         baton, // Minting baton vout
         //'0x1000000',
-        '0x000000E8D4A51000' // Initial quantity
+        '0x0000000000000000' // Initial quantity
       ])
       .withHardcodedFee(minerFee)
       .to(contract.address, change)
       .send();
-    // .meep();
+    // // .meep();
     
 
     console.log('transaction details:', stringify(tx));
@@ -176,7 +176,8 @@ const Genesis = () => {
         <div className="control">
           <div className="select" onChange={handleTokenChange}>
               <select>
-                <option value={TokenTypes.One}>{TokenTypes.One}</option>
+                <option value={TokenTypes.Group}>{TokenTypes.Group}</option>
+                <option value={TokenTypes.Clild}>{TokenTypes.Clild}</option>
               </select>
             </div>
             <p className="help">Tip: (1 to 2 byte integer)</p>

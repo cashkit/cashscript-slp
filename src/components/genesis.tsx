@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { BITBOX } from 'bitbox-sdk';
-import { Contract, SignatureTemplate, ElectrumNetworkProvider } from 'cashscript';
-import { compileFile } from 'cashc';
-import path from 'path';
+import { SignatureTemplate } from 'cashscript';
 import { stringify } from '@bitauth/libauth';
 import { getAliceWallet, getBobWallet, getContract } from './wallet';
+import { ContractHelper } from './helper';
 
 const bitbox = new BITBOX();
 
@@ -79,6 +78,7 @@ const Genesis = () => {
   }
 
   const handleSubmit = async () => {
+
     const contract = await getContract()
     console.log(contract)
     const [alice, alicePk] = getAliceWallet()
@@ -99,7 +99,7 @@ const Genesis = () => {
       }
       
       //const minerFee = parseInt(contract.bytesize)
-      const minerFee = 1041 // Close to min relay fee of the network.
+      const minerFee = 1141 // Close to min relay fee of the network.
       const change = inputVal - minerFee
 
       console.log(
@@ -121,43 +121,39 @@ const Genesis = () => {
         "\n initialQuantity", initialQuantity
       )
   
-    const tx = await contract.functions
-    .spend(alicePk, new SignatureTemplate(alice))
-    .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 450)
-    .send()
-
     // const tx = await contract.functions
-    //   .createToken(
-    //     alicePk,
-    //     new SignatureTemplate(alice),
-    //     actionType,
-    //     symbol,
-    //     name,
-    //     documentURI,
-    //     documentHash,
-    //     // '0x100000000',
-    //     // 0x0000000005F5E100,
-    //     //27160,
-    //     // Buffer.from(initialQuantity, 'hex'),
-    //     minerFee
-    //   ).withOpReturn([
-    //     lokadId, // Lokad ID
-    //     tokenType, // Token type
-    //     actionType, // Action
-    //     symbol, // Symbol
-    //     name, // Name
-    //     documentURI, // Document URI
-    //     documentHash, // Document hash
-    //     decimals, // Decimals
-    //     baton, // Minting baton vout
-    //     //'0x1000000',
-    //     '0x000000E8D4A51000' // Initial quantity
-    //   ])
-    //   .withHardcodedFee(minerFee)
-    //   .to(contract.address, change)
-    //   .send();
+    // .spend(alicePk, new SignatureTemplate(alice))
+    // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 467)
+    // .send()
+
+    const tx = await contract.functions
+      .createToken(
+        alicePk,
+        new SignatureTemplate(alice),
+        actionType,
+        symbol,
+        name,
+        documentURI,
+        documentHash,
+        minerFee
+      ).withOpReturn([
+        lokadId, // Lokad ID
+        tokenType, // Token type
+        actionType, // Action
+        symbol, // Symbol
+        name, // Name
+        documentURI, // Document URI
+        documentHash, // Document hash
+        decimals, // Decimals
+        baton, // Minting baton vout
+        //'0x1000000',
+        '0x000000E8D4A51000' // Initial quantity
+      ])
+      .withHardcodedFee(minerFee)
+      .to(contract.address, change)
+      .send();
+    // .meep();
     
-    // console.log(tx)
 
     console.log('transaction details:', stringify(tx));
 

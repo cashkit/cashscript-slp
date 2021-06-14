@@ -1,0 +1,74 @@
+{
+  "contractName": "Pokemon",
+  "constructorInputs": [
+    {
+      "name": "owner",
+      "type": "bytes20"
+    }
+  ],
+  "abi": [
+    {
+      "name": "spend",
+      "covenant": false,
+      "inputs": [
+        {
+          "name": "pk",
+          "type": "pubkey"
+        },
+        {
+          "name": "s",
+          "type": "sig"
+        }
+      ]
+    },
+    {
+      "name": "createToken",
+      "covenant": true,
+      "inputs": [
+        {
+          "name": "pk",
+          "type": "pubkey"
+        },
+        {
+          "name": "s",
+          "type": "sig"
+        },
+        {
+          "name": "actionType",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "documentURI",
+          "type": "string"
+        },
+        {
+          "name": "documentHash",
+          "type": "string"
+        },
+        {
+          "name": "minerFee",
+          "type": "int"
+        },
+        {
+          "name": "initialQuantity",
+          "type": "int"
+        }
+      ]
+    }
+  ],
+  "bytecode": "OP_OVER OP_0 OP_NUMEQUAL OP_IF OP_2 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_ROT OP_ROT OP_CHECKSIG OP_NIP OP_ELSE OP_SWAP OP_1 OP_NUMEQUALVERIFY OP_OVER OP_NOP 68 OP_SPLIT OP_NIP OP_SIZE 34 OP_SUB OP_SPLIT OP_8 OP_SPLIT OP_4 OP_SPLIT OP_NIP 20 OP_SPLIT OP_DROP OP_5 OP_PICK OP_HASH160 OP_4 OP_ROLL OP_EQUALVERIFY OP_2ROT OP_2DUP OP_SWAP OP_SIZE OP_1SUB OP_SPLIT OP_DROP OP_7 OP_ROLL OP_SHA256 OP_ROT OP_CHECKDATASIGVERIFY OP_CHECKSIGVERIFY OP_0 OP_10 OP_ROLL OP_CAT 0000000000000000 6a 534c5000 OP_SIZE OP_SWAP OP_CAT OP_CAT OP_1 OP_SIZE OP_SWAP OP_CAT OP_CAT OP_6 OP_ROLL OP_SIZE OP_DUP 4b OP_GREATERTHAN OP_IF 4c OP_SWAP OP_CAT OP_ENDIF OP_SWAP OP_CAT OP_CAT OP_6 OP_ROLL OP_SIZE OP_DUP 4b OP_GREATERTHAN OP_IF 4c OP_SWAP OP_CAT OP_ENDIF OP_SWAP OP_CAT OP_CAT OP_6 OP_ROLL OP_SIZE OP_DUP 4b OP_GREATERTHAN OP_IF 4c OP_SWAP OP_CAT OP_ENDIF OP_SWAP OP_CAT OP_CAT OP_6 OP_ROLL OP_SIZE OP_DUP 4b OP_GREATERTHAN OP_IF 4c OP_SWAP OP_CAT OP_ENDIF OP_SWAP OP_CAT OP_CAT OP_6 OP_ROLL OP_SIZE OP_DUP 4b OP_GREATERTHAN OP_IF 4c OP_SWAP OP_CAT OP_ENDIF OP_SWAP OP_CAT OP_CAT OP_8 OP_SIZE OP_SWAP OP_CAT OP_CAT OP_2 OP_SIZE OP_SWAP OP_CAT OP_CAT OP_ROT OP_SIZE OP_DUP 4b OP_GREATERTHAN OP_IF 4c OP_SWAP OP_CAT OP_ENDIF OP_SWAP OP_CAT OP_CAT OP_SIZE OP_SWAP OP_CAT OP_CAT OP_ROT OP_BIN2NUM OP_4 OP_PICK OP_SUB OP_DUP OP_5 OP_ROLL OP_2 OP_DIV OP_GREATERTHANOREQUAL OP_IF OP_DUP OP_8 OP_NUM2BIN 17a914 OP_CAT OP_4 OP_PICK OP_HASH160 OP_CAT 87 OP_CAT OP_2OVER OP_2 OP_PICK OP_CAT OP_HASH256 OP_EQUALVERIFY OP_DROP OP_ELSE OP_2 OP_PICK OP_2 OP_PICK OP_HASH256 OP_EQUALVERIFY OP_ENDIF OP_2DROP OP_2DROP OP_1 OP_ENDIF",
+  "source": "pragma cashscript ^0.6.0;\n\ncontract Pokemon(bytes20 owner) {\n    // Require pk to match stored owner and signature to match\n    function spend(pubkey pk, sig s) {\n        require(hash160(pk) == owner);\n        require(checkSig(s, pk));\n    }\n\n    /**\n    * Can only be called by the creater of the contract.\n    */\n    function createToken(\n        pubkey pk,\n        sig s,\n        string actionType,\n        string symbol,\n        string name,\n        string documentURI,\n        string documentHash,\n        int minerFee,\n        int initialQuantity\n    ) {\n        require(hash160(pk) == owner);\n        require(checkSig(s, pk));\n\n        bytes iq = bytes(0x + bytes(initialQuantity));\n\n        bytes announcement = new OutputNullData([\n            0x534c5000,\n            0x01,\n            bytes(actionType),\n            bytes(symbol),\n            bytes(name),\n            bytes(documentURI),\n            bytes(documentHash),\n            0x08,\n            0x02,\n            iq\n        ]);\n        // Calculate leftover money after fee (1000 sats)\n        // Add change output if the remainder can be used\n        // otherwise donate the remainder to the miner\n        // int minerFee = 1000;\n        int changeAmount = int(bytes(tx.value)) - minerFee;\n        if (changeAmount >= (minerFee / 2)) {\n            bytes32 change = new OutputP2SH(bytes8(changeAmount), hash160(tx.bytecode));\n            require(tx.hashOutputs == hash256(announcement + change));\n        } else {\n            require(tx.hashOutputs == hash256(announcement));\n        }\n    }\n}",
+  "compiler": {
+    "name": "cashc",
+    "version": "0.6.0"
+  },
+  "updatedAt": "2021-06-14T12:08:14.043Z"
+}

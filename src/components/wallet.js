@@ -7,14 +7,17 @@ import { compileString } from 'cashc';
 const artifact = compileString(`
 pragma cashscript ^0.6.0;
 
-contract Pokemon(bytes20 pkh) {
-    // Require pk to match stored pkh and signature to match
+contract Pokemon(bytes20 owner) {
+    // Require pk to match stored owner and signature to match
     function spend(pubkey pk, sig s) {
-        require(hash160(pk) == pkh);
+        require(hash160(pk) == owner);
         require(checkSig(s, pk));
     }
 
-    function createPokemonSLP(
+    /**
+    * Can only be called by the creater of the contract.
+    */
+    function createToken(
         pubkey pk,
         sig s,
         string actionType,
@@ -22,9 +25,13 @@ contract Pokemon(bytes20 pkh) {
         string name,
         string documentURI,
         string documentHash,
-        int minerFee
+        int minerFee,
+        //int initialQuantity
     ) {
+        require(hash160(pk) == owner);
         require(checkSig(s, pk));
+
+        //bytes8 initialQty = bytes8(initialQuantity);
 
         // Create the memo.cash announcement output
         bytes announcement = new OutputNullData([
@@ -37,12 +44,14 @@ contract Pokemon(bytes20 pkh) {
             bytes(documentHash),
             0x08,
             0x02,
-            0x0000000005F5E100
+            // 0x0000000005F5E100
+            0x000000E8D4A51000
+            //initialQty
         ]);
         // Calculate leftover money after fee (1000 sats)
         // Add change output if the remainder can be used
         // otherwise donate the remainder to the miner
-        //int minerFee = 1000;
+        // int minerFee = 1000;
         int changeAmount = int(bytes(tx.value)) - minerFee;
         if (changeAmount >= (minerFee / 2)) {
             bytes32 change = new OutputP2SH(bytes8(changeAmount), hash160(tx.bytecode));

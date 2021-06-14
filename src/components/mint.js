@@ -121,8 +121,8 @@ const Mint = () => {
         <div className="control">
           <input className="input" type="text" placeholder="Text input" value={baton} onChange={handleBatonChange}/>
         </div>
-        <p className="help">Example: 0x02</p>
         <p className="help">Tip: Include `0x` before hex value. (0 bytes or 1 byte between 0x02-0xff)</p>
+        <p className="help">Mint Baton is a certain characteristic of the address that has a right to issue more tokens. Some tokens can have mint baton and some not, depending on how the token creator had it configured.</p>
       </div>
 
       <div className="field">

@@ -26,7 +26,9 @@ const defaultDocumentURI = ' '
 const defaulDocumentHash = 'CE114E4501D2F4E2DCEA3E17B546F339'
 const defaultDecimals = '0x08'
 const defaulBaton = '0x02'
-const defaultInitialQuantity = '0x0000000005F5E100'
+const defaultInitialQuantity = '0x5F5E10'
+//const defaultInitialQuantity = '100000000'
+
 
 const Genesis = () => {
   const lokadId = '0x534c5000'
@@ -82,19 +84,22 @@ const Genesis = () => {
     const [alice, alicePk] = getAliceWallet()
     const bob = getBobWallet()
 
-
       //const utxosRes = await bitbox.Address.utxo("qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0")
       const utxosRes = await bitbox.Address.utxo(contract.address)
       //   .then((res) => console.log(res))
       //   .catch((e) => console.log(e))
-    
+      let inputVal = 0
+      // @ts-ignore
       if (utxosRes.utxos.length < 1){
         console.log("No utxo available for this address", contract.address)
-        return
+        //return
+      } else {
+        // @ts-ignore
+        inputVal = utxosRes.utxos[0].satoshis
       }
-      const inputVal = utxosRes.utxos[0].satoshis
+      
       //const minerFee = parseInt(contract.bytesize)
-      const minerFee = 941 // Close to min relay fee of the network.
+      const minerFee = 1041 // Close to min relay fee of the network.
       const change = inputVal - minerFee
 
       console.log(
@@ -116,38 +121,44 @@ const Genesis = () => {
         "\n initialQuantity", initialQuantity
       )
   
-
-      // const tx = await contract.functions
-      // .spend(alicePk, new SignatureTemplate(alice))
-      // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", change)
-      // .send()
-
     const tx = await contract.functions
-      .createPokemonSLP(
-        alicePk,
-        new SignatureTemplate(alice),
-        actionType,
-        symbol,
-        name,
-        documentURI,
-        documentHash,
-        minerFee
-      ).withOpReturn([
-        lokadId, // Lokad ID
-        tokenType, // Token type
-        actionType, // Action
-        symbol, // Symbol
-        name, // Name
-        documentURI, // Document URI
-        documentHash, // Document hash
-        decimals, // Decimals
-        baton, // Minting baton vout
-        initialQuantity, // Initial quantity
-      ])
-      .withHardcodedFee(minerFee)
-      .to(contract.address, change)
-      .send();
+    .spend(alicePk, new SignatureTemplate(alice))
+    .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 450)
+    .send()
+
+    // const tx = await contract.functions
+    //   .createToken(
+    //     alicePk,
+    //     new SignatureTemplate(alice),
+    //     actionType,
+    //     symbol,
+    //     name,
+    //     documentURI,
+    //     documentHash,
+    //     // '0x100000000',
+    //     // 0x0000000005F5E100,
+    //     //27160,
+    //     // Buffer.from(initialQuantity, 'hex'),
+    //     minerFee
+    //   ).withOpReturn([
+    //     lokadId, // Lokad ID
+    //     tokenType, // Token type
+    //     actionType, // Action
+    //     symbol, // Symbol
+    //     name, // Name
+    //     documentURI, // Document URI
+    //     documentHash, // Document hash
+    //     decimals, // Decimals
+    //     baton, // Minting baton vout
+    //     //'0x1000000',
+    //     '0x000000E8D4A51000' // Initial quantity
+    //   ])
+    //   .withHardcodedFee(minerFee)
+    //   .to(contract.address, change)
+    //   .send();
     
+    // console.log(tx)
+
     console.log('transaction details:', stringify(tx));
 
   }
@@ -236,7 +247,7 @@ const Genesis = () => {
           <input className="input" type="text" placeholder="Text input" value={baton} onChange={handleBatonChange}/>
         </div>
         <p className="help">Example: 0x02 (0 bytes, or 1 byte in range 0x02-0xff)</p>
-        <p className="help">Tip: Include `0x` before hex value</p>
+        <p className="help">Mint Baton is a certain characteristic of the address that has a right to issue more tokens. Some tokens can have mint baton and some not, depending on how the token creator had it configured.</p>
       </div>
 
       <div className="field">

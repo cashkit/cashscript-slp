@@ -30,8 +30,8 @@ const ActionTypes = {
   COMMIT: 'COMMIT'
 }
 
-const defaultSymbol = 'PNG'
-const defaultName = 'Pokemon NFT Group'
+const defaultSymbol = 'EPG'
+const defaultName = 'Electric Pokemons Group'
 const defaultDocumentURI = ' '
 const defaulDocumentHash = 'CE114E4501D2F4E2DCEA3E17B546F339'
 const defaultDecimals = '0x00'
@@ -96,7 +96,10 @@ const Genesis = () => {
     console.log(contract)
 
     const cashAddr = bitbox.ECPair.toCashAddress(alice);
-    const slpRecipient = Utils.toSlpAddress(cashAddr)
+    // const slpRecipient = Utils.toSlpAddress(cashAddr)
+    // console.log(slpRecipient)
+
+    const slpRecipient = Utils.toSlpAddress(contract.address)
     console.log(slpRecipient)
 
     //const utxosRes = await bitbox.Address.utxo("qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0")
@@ -149,7 +152,7 @@ const Genesis = () => {
   
     // const tx = await contract.functions
     // .reclaim(alicePk, new SignatureTemplate(alice))
-    // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 500)
+    // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 653)
     // .send()
 
     const tx = await contract.functions
@@ -179,7 +182,7 @@ const Genesis = () => {
        .to(slpRecipient, dust)
        .to(contract.address, change)
       .send();
-    // .meep();
+    // // .meep();
     console.log('transaction details:', stringify(tx));
 
   }

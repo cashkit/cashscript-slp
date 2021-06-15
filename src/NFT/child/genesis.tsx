@@ -12,7 +12,7 @@ const bitbox = new BITBOX();
 
 /**
  * First input must be from the address which holds the genesis transaction.
- * 
+ * Second should be the that is spending
  */
 
 const TokenTypes = {
@@ -26,10 +26,11 @@ const ActionTypes = {
   COMMIT: 'COMMIT'
 }
 
-const defaultSymbol = 'POKE'
-const defaultName = 'Pokemon NFT Child'
-const defaultDocumentURI = ' '
-const defaulDocumentHash = 'CE114E4501D2F4E2DCEA3E17B546F339'
+const defaultSymbol = 'PIKACHU'
+const defaultName = 'PIKACHU'
+const defaultDocumentURI = 'Electric Mouse 0.4m 6.0kg'
+const defaulDocumentHash = 'C590A115139B7B80F2EC2273D16D657D'
+//const defaulDocumentHash = 'Electric Mouse 0.4m 6.0kg'
 const defaultDecimals = '0x00'
 /**
  * Only set 0x4c00 when in the genesis transcation
@@ -92,35 +93,68 @@ const Genesis = () => {
 
   const handleSubmit = async () => {
     const [alice, alicePk] = getAliceWallet()
+    const [bob, bobPk] = getAliceWallet()
     const contract = await getNFTContract(alicePk)
 
     let inputVal = 0
 
-    const Utxos = (await contract.getUtxos())
+    const _Utxos = (await contract.getUtxos())
     .sort((a, b) => b.satoshis - a.satoshis)
-    console.log(Utxos)
 
-    let groupInputUtxo;
+    let groupInputTxId = "110426292c63fe0db0932b4dc1c49594127e9b2e1a6d66a3e5696a830de9f3dd"
+
+    const groupInputUtxo = _Utxos
+    .filter(u => u.txid === groupInputTxId)
+    .filter(s => s.satoshis === 546)
+
+    const funderUtxos = (await contract.getUtxos())
+    .sort((a, b) => b.satoshis - a.satoshis)
+    .slice(0, 1);
+
+    const transactionInputs = []
+    //@ts-ignore
+    transactionInputs.push(...groupInputUtxo, ...funderUtxos)
+
+    // const cashAddr = bitbox.ECPair.toCashAddress(bob);
+    // const slpRecipient = Utils.toSlpAddress(cashAddr)
+    // console.log(slpRecipient)
+
+    //const cashAddr = bitbox.ECPair.toCashAddress(alice);
+    // const slpRecipient = Utils.toSlpAddress(cashAddr)
+    // console.log(slpRecipient)
+
+    const slpRecipient = Utils.toSlpAddress(contract.address)
+    console.log(slpRecipient)
+
+    // await bitbox.Address.utxo(cashAddr)
+    //   .then((res) => {
+    //     console.log("alice utxos: ", res)
+    //     //@ts-ignore
+    //     res.utxos.forEach((u) => {
+    //       if (u.txid === groupInputTxId){
+    //         groupInputUtxo = u
+    //       }
+    //     })
+    //   })
+    //   .catch((e) => console.log(e))
+
     // @ts-ignore
-    if (Utxos.length < 1){
+    if (transactionInputs.length < 1){
       console.log("No utxo available for this address", contract.address)
       //return
     } else {
-      // @ts-ignore
-      Utxos.forEach((u, idx) => {
+      transactionInputs.forEach((u, idx) => {
         console.log(u)
-        if (u.vout === 1){
-          groupInputUtxo = u
-        }
+        // @ts-ignore
         inputVal += u.satoshis
       });
       
     }
     
     //const minerFee = parseInt(contract.bytesize)
-    const minerFee = 1121 // Close to min relay fee of the network.
-    const slpDust = 546
-    const change = inputVal - minerFee - slpDust
+    const minerFee = 621 // Close to min relay fee of the network.
+    const dust = 546
+    const change = inputVal - minerFee - dust
 
     console.log(
       "\n Input Value: ", inputVal,
@@ -158,15 +192,15 @@ const Genesis = () => {
     // });
     // const tx = await constructReclaim.send()
 
-    const cashAddr = bitbox.ECPair.toCashAddress(alice);
-    const slpRecipient = Utils.toSlpAddress(cashAddr)
+    // const cashAddr = bitbox.ECPair.toCashAddress(alice);
+    // const slpRecipient = Utils.toSlpAddress(cashAddr)
 
-    //const slpRecipient = Utils.toSlpAddress(contract.address)
-    console.log(cashAddr, slpRecipient)
+    // //const slpRecipient = Utils.toSlpAddress(contract.address)
+    // console.log(cashAddr, slpRecipient)
     
-    const alicePkh = bitbox.Crypto.hash160(alicePk);
+    // const alicePkh = bitbox.Crypto.hash160(alicePk);
 
-    if (groupInputUtxo && false) {
+    if (groupInputUtxo) {
       const txn = contract.functions.createNFTChild(
         alicePk,
         new SignatureTemplate(alice),
@@ -185,19 +219,22 @@ const Genesis = () => {
         documentURI, // Document URI
         documentHash, // Document hash
         decimals, // Decimals
-        baton,
+        '',
+        // baton,
         initialQuantity
       ])
       //txn.from(groupInputUtxo)
-      // Utxos.forEach((u, idx) => {
-      //   txn.from(u)
-      // });
+      transactionInputs.forEach((u, idx) => {
+        txn.from(u)
+      });
       txn.withHardcodedFee(minerFee)
-      txn.to(contract.address, 546)
+      txn.to(slpRecipient, dust)
       //txn.to(slpRecipient, 546)
       txn.to(contract.address, change)
 
       let tx = await txn.send()
+      //console.log('transaction details:', txn);
+
       console.log('transaction details:', stringify(tx));
     }
 

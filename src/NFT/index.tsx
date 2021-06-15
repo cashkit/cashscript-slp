@@ -1,15 +1,17 @@
-import Genesis from './genesis';
-import Mint from './mint';
-import Send from './send';
+import GroupGenesis from './group/genesis';
+import ChildGenesis from './child/genesis';
+import ChildSend from './child/send';
 
 const NFT = () => {
   return (
     <>
-      <div className="title mt-3">NFT</div>
+      <div className="title mt-3">NFT Group</div>
+      <GroupGenesis></GroupGenesis>
+
+      <div className="title mt-4">NFT Child</div>
       <div className="columns">
-        <Genesis></Genesis>
-        <Mint></Mint>
-        <Send></Send>
+        <ChildGenesis></ChildGenesis>
+        <ChildSend></ChildSend>
       </div>
     </>
   )

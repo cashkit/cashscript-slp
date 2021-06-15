@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import { BITBOX } from 'bitbox-sdk';
-import { Contract, SignatureTemplate, ElectrumNetworkProvider } from 'cashscript';
-import { compileFile } from 'cashc';
-import path from 'path';
-import { stringify } from '@bitauth/libauth';
-import { getAliceWallet, getContract } from './wallet';
-
 const TokenTypes = {
   One: '0x01',
 }
@@ -109,8 +102,8 @@ const Send = () => {
         <p className="help">Tip: Include `0x` before hex value</p>
       </div>
 
-      <div class="control">
-        <button onClick={handleSubmit} class="button is-primary">Submit `Send` Transaction</button>
+      <div className="control">
+        <button onClick={handleSubmit} className="button is-primary">Submit `Send` Transaction</button>
       </div>
 
     </div>

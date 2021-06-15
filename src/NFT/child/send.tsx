@@ -11,15 +11,13 @@ const ActionTypes = {
   COMMIT: 'COMMIT'
 }
 
-const defaulBaton = '0x02'
 const defaulTokenId = '0xe2d82a5c2a1254184f9259c85d8501d942bbd499688ff591b2d86619bbe6eca2'
 const defaultAmount = '0x0000000000010000'
 
-const Mint = () => {
+const Send = () => {
   const lokadId = 0x534c5000
   const [tokenType, setTokenType] = useState(TokenTypes.One)
-  const [actionType, setActionType] = useState(ActionTypes.MINT)
-  const [baton, setBaton] = useState(defaulBaton)
+  const [actionType, setActionType] = useState(ActionTypes.SEND)
   const [tokenId, setTokenId] = useState(defaulTokenId)
   const [amount, setAmount] = useState(defaultAmount)
 
@@ -29,10 +27,6 @@ const Mint = () => {
 
   const handleActionChange = (event) => {
     setActionType(event.target.value)
-  }
-
-  const handleBatonChange = (event) => {
-    setBaton(event.target.value)
   }
 
   const handleTokenIdChange = (event) => {
@@ -48,15 +42,15 @@ const Mint = () => {
       lokadId,
       tokenType,
       actionType,
-      baton,
       tokenId,
       amount
+
     )
   }
 
   return (
     <div className="box column mr-2">
-      <div className="title has-text-centered">Mint</div>
+      <div className="title box">Send</div>
 
       <div className="field">
         <label className="label">Lokad Id</label>
@@ -83,20 +77,11 @@ const Mint = () => {
         <div className="control">
           <div className="select" onChange={handleActionChange}>
               <select>
-                <option>{ActionTypes.MINT}</option>
+                <option>{ActionTypes.SEND}</option>
               </select>
             </div>
             <p className="help">Tip: (4 bytes, ascii)</p>
         </div>
-      </div>
-
-      <div className="field">
-        <label className="label">Baton vout</label>
-        <div className="control">
-          <input className="input" type="text" placeholder="Text input" value={baton} onChange={handleBatonChange}/>
-        </div>
-        <p className="help">Tip: Include `0x` before hex value. (0 bytes or 1 byte between 0x02-0xff)</p>
-        <p className="help">Mint Baton is a certain characteristic of the address that has a right to issue more tokens. Some tokens can have mint baton and some not, depending on how the token creator had it configured.</p>
       </div>
 
       <div className="field">
@@ -109,20 +94,20 @@ const Mint = () => {
       </div>
 
       <div className="field">
-        <label className="label">Additional Token Quantity</label>
+        <label className="label">Amount</label>
         <div className="control">
           <input className="input" type="text" placeholder="Text input" value={amount} onChange={handleAmountChange}/>
         </div>
-        <p className="help">Example: 0x0000000000010000 (8 byte integer)</p>
+        <p className="help">Example: 0x0000000000010000 (required, 8 byte integer)</p>
         <p className="help">Tip: Include `0x` before hex value</p>
       </div>
 
-      <div class="control">
-        <button onClick={handleSubmit} class="button is-primary">Submit `Mint` Transaction</button>
+      <div className="control">
+        <button onClick={handleSubmit} className="button is-primary">Submit `Send` Transaction</button>
       </div>
 
     </div>
   )
 }
 
-export default Mint
+export default Send

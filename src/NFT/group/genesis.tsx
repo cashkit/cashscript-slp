@@ -3,10 +3,20 @@ import React, { useEffect, useState } from 'react';
 import { BITBOX } from 'bitbox-sdk';
 import { SignatureTemplate } from 'cashscript';
 import { stringify } from '@bitauth/libauth';
-import { getAliceWallet, getBobWallet, getContract } from './wallet';
-import { ContractHelper } from './helper';
+import { getAliceWallet } from '../../wallet';
+import { getNFTContract } from '../../contracts';
 
 const bitbox = new BITBOX();
+
+/**
+ * Input: Atleast 1 input transaction with funds to pay fee
+ * 
+ * Output:
+ *  - SLP Data
+ *  - SLP address that will get the issued tokens
+ *  - Change address. mostly the same address as input
+ * 
+ */
 
 const TokenTypes = {
   Group: '0x81',
@@ -26,7 +36,8 @@ const defaultDocumentURI = ' '
 const defaulDocumentHash = 'CE114E4501D2F4E2DCEA3E17B546F339'
 const defaultDecimals = '0x00'
 const defaulBaton = '0x02'
-const defaultInitialQuantity = '0x0000000000000000'
+//const defaultInitialQuantity = '0x0000000000000000'
+const defaultInitialQuantity = '0x0000000000001388' // 5000 Group token NFTs
 
 
 const Genesis = () => {
@@ -79,89 +90,103 @@ const Genesis = () => {
 
   const handleSubmit = async () => {
 
-    const contract = await getContract()
-    console.log(contract)
+
     const [alice, alicePk] = getAliceWallet()
-    const bob = getBobWallet()
+    const contract = await getNFTContract(alicePk)
+    console.log(contract)
 
-      //const utxosRes = await bitbox.Address.utxo("qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0")
-      const utxosRes = await bitbox.Address.utxo(contract.address)
-      //   .then((res) => console.log(res))
-      //   .catch((e) => console.log(e))
-      let inputVal = 0
+    const aliceAddress = alice.getAddress()
+    console.log(aliceAddress)
+
+    //const utxosRes = await bitbox.Address.utxo("qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0")
+    //   .then((res) => console.log(res))
+    //   .catch((e) => console.log(e))
+
+
+    let inputVal = 0
+    const Utxos = (await contract.getUtxos())
+    .sort((a, b) => b.satoshis - a.satoshis)
+    console.log(Utxos)
+
+    // @ts-ignore
+    if (Utxos.length < 1){
+      console.log("No utxo available for this address", contract.address)
+      //return
+    } else {
       // @ts-ignore
-      if (utxosRes.utxos.length < 1){
-        console.log("No utxo available for this address", contract.address)
-        //return
-      } else {
-        // @ts-ignore
-        inputVal = utxosRes.utxos[0].satoshis
-      }
+      Utxos.forEach((u, idx) => {
+        console.log(u)
+        inputVal += u.satoshis
+      });
       
-      //const minerFee = parseInt(contract.bytesize)
-      const minerFee = 1141 // Close to min relay fee of the network.
-      const change = inputVal - minerFee
+    }
+    
+    //const minerFee = parseInt(contract.bytesize)
+    const dust = 546
+    const minerFee = 2141 // Close to min relay fee of the network.
+    // const change = inputVal - minerFee - dust
+    const change = inputVal - minerFee
 
-      console.log(
-        "\n Input Value: ", inputVal,
-        "\n minerFee: ", minerFee,
-        "\n change: ", change,
-      )
 
-      console.log(
-        "\n lokadId", lokadId,
-        "\n tokenType", tokenType,
-        "\n actionType", actionType,
-        "\n symbol", symbol,
-        "\n name", name,
-        "\n documentURI", documentURI, 
-        "\n documentHash", documentHash,
-        "\n decimals", decimals,
-        "\n baton", baton,
-        "\n initialQuantity", initialQuantity
-      )
+    console.log(
+      "\n Input Value: ", inputVal,
+      "\n minerFee: ", minerFee,
+      "\n change: ", change,
+    )
+
+    console.log(
+      "\n lokadId", lokadId,
+      "\n tokenType", tokenType,
+      "\n actionType", actionType,
+      "\n symbol", symbol,
+      "\n name", name,
+      "\n documentURI", documentURI, 
+      "\n documentHash", documentHash,
+      "\n decimals", decimals,
+      "\n baton", baton,
+      "\n initialQuantity", initialQuantity
+    )
   
-    // const tx = await contract.functions
-    // .spend(alicePk, new SignatureTemplate(alice))
-    // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 467)
-    // .send()
-
     const tx = await contract.functions
-      .createNFTGroup(
-        alicePk,
-        new SignatureTemplate(alice),
-        actionType,
-        symbol,
-        name,
-        documentURI,
-        documentHash,
-        minerFee
-      ).withOpReturn([
-        lokadId, // Lokad ID
-        tokenType, // Token type
-        actionType, // Action
-        symbol, // Symbol
-        name, // Name
-        documentURI, // Document URI
-        documentHash, // Document hash
-        decimals, // Decimals
-        baton, // Minting baton vout
-        //'0x1000000',
-        '0x0000000000000000' // Initial quantity
-      ])
-      .withHardcodedFee(minerFee)
-      .to(contract.address, change)
-      .send();
-    // // .meep();
+    .reclaim(alicePk, new SignatureTemplate(alice))
+    .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 1000)
+    .send()
+
+    // const tx = await contract.functions
+    //   .createNFTGroup(
+    //     alicePk,
+    //     new SignatureTemplate(alice),
+    //     actionType,
+    //     symbol,
+    //     name,
+    //     documentURI,
+    //     documentHash,
+    //     minerFee
+    //   ).withOpReturn([
+    //     lokadId, // Lokad ID
+    //     tokenType, // Token type
+    //     actionType, // Action
+    //     symbol, // Symbol
+    //     name, // Name
+    //     documentURI, // Document URI
+    //     documentHash, // Document hash
+    //     decimals, // Decimals
+    //     baton, // Minting baton vout
+    //     initialQuantity
+    //   ])
+    //   .withHardcodedFee(minerFee)
+    //   .to(contract.address, change)
+    //   .send();
+    // // // .meep();
     
 
-    console.log('transaction details:', stringify(tx));
+    // console.log('transaction details:', stringify(tx));
 
   }
 
   return (
     <div className="box column mr-2">
-      <div className="title has-text-centered">Genesis</div>
+      <div className="title box">Genesis</div>
 
       <div className="field">
         <label className="label">Lokad Id</label>
@@ -256,8 +281,8 @@ const Genesis = () => {
         <p className="help">Tip: Include `0x` before hex value</p>
       </div>
 
-      <div class="control">
-        <button onClick={handleSubmit} class="button is-primary">Submit Genesis</button>
+      <div className="control">
+        <button onClick={handleSubmit} className="button is-primary">Submit Genesis</button>
       </div>
 
     </div>

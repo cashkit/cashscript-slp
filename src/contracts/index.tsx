@@ -1,5 +1,5 @@
 import { BITBOX } from 'bitbox-sdk';
-import { Contract, ElectrumNetworkProvider } from 'cashscript';
+import { Contract, ElectrumNetworkProvider, BitboxNetworkProvider } from 'cashscript';
 import { compileString } from 'cashc';
 
 
@@ -9,7 +9,9 @@ export const getContract = async (artifact, pk) => {
   const alicePkh = bitbox.Crypto.hash160(pk);
 
   // Initialise a network provider for network operations on MAINNET
-  const provider = new ElectrumNetworkProvider('mainnet');
+  // @ts-ignore
+  const provider = new BitboxNetworkProvider('mainnet', bitbox);
+  //const provider = new ElectrumNetworkProvider('mainnet');
 
   // Instantiate a new contract using the compiled artifact and network provider
   // AND providing the constructor parameters (pkh: alicePkh)
@@ -44,6 +46,7 @@ export const getNFTContract = async (pk) => {
       function createNFTGroup(
           pubkey pk,
           sig s,
+          bytes20 recipientPkh,
           string actionType,
           string symbol,
           string name,
@@ -64,20 +67,22 @@ export const getNFTContract = async (pk) => {
               bytes(documentURI),
               bytes(documentHash),
               0x00,
-              0x02,
+              0xff, // Trick: Keep this number above the number of transactions you would expect.
               0x0000000000001388
           ]);
           // Calculate leftover money after fee (1000 sats)
           // Add change output if the remainder can be used
           // otherwise donate the remainder to the miner
           // int minerFee = 1000;
-          int changeAmount = int(bytes(tx.value)) - minerFee;
-          // int dust = 546;
+          int dust = 546;
+          int changeAmount = int(bytes(tx.value)) - dust - minerFee;
+  
           // require(changeAmount > dust);
   
-          if (changeAmount >= (minerFee / 2)) {
+          if (changeAmount >= minerFee) {
+              bytes34 recipient = new OutputP2PKH(bytes8(dust), recipientPkh);
               bytes32 change = new OutputP2SH(bytes8(changeAmount), hash160(tx.bytecode));
-              require(hash256(announcement + change) == tx.hashOutputs);
+              require(hash256(announcement + recipient + change) == tx.hashOutputs);
           } else {
               require(hash256(announcement) == tx.hashOutputs);
           }

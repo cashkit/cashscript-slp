@@ -35,7 +35,7 @@ const defaultName = 'Electric Pokemons Group'
 const defaultDocumentURI = ' '
 const defaulDocumentHash = 'CE114E4501D2F4E2DCEA3E17B546F339'
 const defaultDecimals = '0x00'
-const defaulBaton = '0x02'
+const defaulBaton = '0xff'
 //const defaultInitialQuantity = '0x0000000000000000'
 const defaultInitialQuantity = '0x0000000000001388' // 5000 Group token NFTs
 
@@ -89,18 +89,16 @@ const Genesis = () => {
   }
 
   const handleSubmit = async () => {
-
-
     const [alice, alicePk] = getAliceWallet()
     const contract = await getNFTContract(alicePk)
     console.log(contract)
 
     const cashAddr = bitbox.ECPair.toCashAddress(alice);
-    // const slpRecipient = Utils.toSlpAddress(cashAddr)
-    // console.log(slpRecipient)
-
-    const slpRecipient = Utils.toSlpAddress(contract.address)
+    const slpRecipient = Utils.toSlpAddress(cashAddr)
     console.log(slpRecipient)
+
+    //const slpRecipient = Utils.toSlpAddress(contract.address)
+    //console.log(slpRecipient)
 
     //const utxosRes = await bitbox.Address.utxo("qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0")
     //   .then((res) => console.log(res))
@@ -125,10 +123,10 @@ const Genesis = () => {
     }
     
     //const minerFee = parseInt(contract.bytesize)
-    //const dust = 546
+    const dust = 546
     const minerFee = 1241 // Close to min relay fee of the network.
     // const change = inputVal - minerFee - dust
-    const change = inputVal - minerFee //- dust
+    const change = inputVal - minerFee - dust
 
 
     console.log(
@@ -155,10 +153,12 @@ const Genesis = () => {
     // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 600)
     // .send()
 
+    const alicePkh = bitbox.Crypto.hash160(alicePk);
     const tx = await contract.functions
       .createNFTGroup(
         alicePk,
         new SignatureTemplate(alice),
+        alicePkh,
         actionType,
         symbol,
         name,
@@ -180,7 +180,7 @@ const Genesis = () => {
         initialQuantity
       ])
       .withHardcodedFee(minerFee)
-      //.to(slpRecipient, 546)
+      .to(slpRecipient, dust)
       .to(contract.address, change)
       .send();
     // // .meep();

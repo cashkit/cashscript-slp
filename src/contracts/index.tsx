@@ -42,46 +42,55 @@ export const getNFTContract = async (pk) => {
       }
   
   
-      /**
-      * Can only be called by the creater of the contract.
-      */
       function createNFTGroup(
           pubkey pk,
           sig s,
-          string actionType,
-          string symbol,
-          string name,
-          string documentURI,
-          string documentHash,
-          int minerFee,
-      ) {  
+      ) {
           require(hash160(pk) == owner);
           require(checkSig(s, pk));
-  
-          bytes announcement = new OutputNullData([
-              0x534c5000,
-              0x81,
-              bytes(actionType),
-              bytes(symbol),
-              bytes(name),
-              bytes(documentURI),
-              bytes(documentHash),
-              0x00,
-              0x02,
-              0x0000000000001388
-          ]);
-          // Calculate leftover money after fee (1000 sats)
-          // Add change output if the remainder can be used
-          // otherwise donate the remainder to the miner
-          // int minerFee = 1000;
-          int changeAmount = int(bytes(tx.value)) - minerFee;
-          if (changeAmount >= (minerFee / 2)) {
-              bytes32 change = new OutputP2SH(bytes8(changeAmount), hash160(tx.bytecode));
-              require(tx.hashOutputs == hash256(announcement + change));
-          } else {
-              require(tx.hashOutputs == hash256(announcement));
-          }
       }
+  
+  
+      /**
+      * Can only be called by the creater of the contract.
+      */
+      // function createNFTGroup(
+      //     pubkey pk,
+      //     sig s,
+      //     string actionType,
+      //     string symbol,
+      //     string name,
+      //     string documentURI,
+      //     string documentHash,
+      //     int minerFee,
+      // ) {  
+      //     require(hash160(pk) == owner);
+      //     require(checkSig(s, pk));
+  
+      //     bytes announcement = new OutputNullData([
+      //         0x534c5000,
+      //         0x81,
+      //         bytes(actionType),
+      //         bytes(symbol),
+      //         bytes(name),
+      //         bytes(documentURI),
+      //         bytes(documentHash),
+      //         0x00,
+      //         0x02,
+      //         0x0000000000001388
+      //     ]);
+      //     // Calculate leftover money after fee (1000 sats)
+      //     // Add change output if the remainder can be used
+      //     // otherwise donate the remainder to the miner
+      //     // int minerFee = 1000;
+      //     int changeAmount = int(bytes(tx.value)) - minerFee;
+      //     if (changeAmount >= (minerFee / 2)) {
+      //         bytes32 change = new OutputP2SH(bytes8(changeAmount), hash160(tx.bytecode));
+      //         require(tx.hashOutputs == hash256(announcement + change));
+      //     } else {
+      //         require(tx.hashOutputs == hash256(announcement));
+      //     }
+      // }
   }
 `)
   const contract = getContract(artifact, pk)

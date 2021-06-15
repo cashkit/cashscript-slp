@@ -5,6 +5,7 @@ import { SignatureTemplate } from 'cashscript';
 import { stringify } from '@bitauth/libauth';
 import { getAliceWallet } from '../../wallet';
 import { getNFTContract } from '../../contracts';
+import { Utils } from 'slpjs';
 
 const bitbox = new BITBOX();
 
@@ -13,14 +14,13 @@ const bitbox = new BITBOX();
  * 
  * Output:
  *  - SLP Data
- *  - SLP address that will get the issued tokens
+ *  - SLP address that will get the issued tokens. May not be the same as the contract address.
  *  - Change address. mostly the same address as input
  * 
  */
 
 const TokenTypes = {
   Group: '0x81',
-  Clild: '0x41'
 }
 
 const ActionTypes = {
@@ -95,13 +95,13 @@ const Genesis = () => {
     const contract = await getNFTContract(alicePk)
     console.log(contract)
 
-    const aliceAddress = alice.getAddress()
-    console.log(aliceAddress)
+    const cashAddr = bitbox.ECPair.toCashAddress(alice);
+    const slpRecipient = Utils.toSlpAddress(cashAddr)
+    console.log(slpRecipient)
 
     //const utxosRes = await bitbox.Address.utxo("qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0")
     //   .then((res) => console.log(res))
     //   .catch((e) => console.log(e))
-
 
     let inputVal = 0
     const Utxos = (await contract.getUtxos())
@@ -123,9 +123,9 @@ const Genesis = () => {
     
     //const minerFee = parseInt(contract.bytesize)
     const dust = 546
-    const minerFee = 2141 // Close to min relay fee of the network.
+    const minerFee = 641 // Close to min relay fee of the network.
     // const change = inputVal - minerFee - dust
-    const change = inputVal - minerFee
+    const change = inputVal - minerFee - dust
 
 
     console.log(
@@ -147,40 +147,40 @@ const Genesis = () => {
       "\n initialQuantity", initialQuantity
     )
   
-    const tx = await contract.functions
-    .reclaim(alicePk, new SignatureTemplate(alice))
-    .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 1000)
-    .send()
-
     // const tx = await contract.functions
-    //   .createNFTGroup(
-    //     alicePk,
-    //     new SignatureTemplate(alice),
-    //     actionType,
-    //     symbol,
-    //     name,
-    //     documentURI,
-    //     documentHash,
-    //     minerFee
-    //   ).withOpReturn([
-    //     lokadId, // Lokad ID
-    //     tokenType, // Token type
-    //     actionType, // Action
-    //     symbol, // Symbol
-    //     name, // Name
-    //     documentURI, // Document URI
-    //     documentHash, // Document hash
-    //     decimals, // Decimals
-    //     baton, // Minting baton vout
-    //     initialQuantity
-    //   ])
-    //   .withHardcodedFee(minerFee)
-    //   .to(contract.address, change)
-    //   .send();
-    // // // .meep();
-    
+    // .reclaim(alicePk, new SignatureTemplate(alice))
+    // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 500)
+    // .send()
 
-    // console.log('transaction details:', stringify(tx));
+    const tx = await contract.functions
+      .createNFTGroup(
+        alicePk,
+        new SignatureTemplate(alice),
+        // actionType,
+        // symbol,
+        // name,
+        // documentURI,
+        // documentHash,
+        // minerFee
+      ).withOpReturn([
+        lokadId, // Lokad ID
+        tokenType, // Token type
+        actionType, // Action
+        symbol, // Symbol
+        name, // Name
+        documentURI, // Document URI
+        documentHash, // Document hash
+        decimals, // Decimals
+        '', // Make sure that you add 0 bytes here.
+        //baton, // Minting baton vout
+        initialQuantity
+      ])
+      .withHardcodedFee(minerFee)
+       .to(slpRecipient, dust)
+       .to(contract.address, change)
+      .send();
+    // .meep();
+    console.log('transaction details:', stringify(tx));
 
   }
 
@@ -202,7 +202,6 @@ const Genesis = () => {
           <div className="select" onChange={handleTokenChange}>
               <select>
                 <option value={TokenTypes.Group}>{TokenTypes.Group}</option>
-                <option value={TokenTypes.Clild}>{TokenTypes.Clild}</option>
               </select>
             </div>
             <p className="help">Tip: (1 to 2 byte integer)</p>

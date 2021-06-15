@@ -125,10 +125,10 @@ const Genesis = () => {
     }
     
     //const minerFee = parseInt(contract.bytesize)
-    const dust = 546
-    const minerFee = 641 // Close to min relay fee of the network.
+    //const dust = 546
+    const minerFee = 1241 // Close to min relay fee of the network.
     // const change = inputVal - minerFee - dust
-    const change = inputVal - minerFee - dust
+    const change = inputVal - minerFee //- dust
 
 
     console.log(
@@ -152,20 +152,21 @@ const Genesis = () => {
   
     // const tx = await contract.functions
     // .reclaim(alicePk, new SignatureTemplate(alice))
-    // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 653)
+    // .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", inputVal - 600)
     // .send()
 
     const tx = await contract.functions
       .createNFTGroup(
         alicePk,
         new SignatureTemplate(alice),
-        // actionType,
-        // symbol,
-        // name,
-        // documentURI,
-        // documentHash,
-        // minerFee
-      ).withOpReturn([
+        actionType,
+        symbol,
+        name,
+        documentURI,
+        documentHash,
+        minerFee
+      )
+      .withOpReturn([
         lokadId, // Lokad ID
         tokenType, // Token type
         actionType, // Action
@@ -174,16 +175,16 @@ const Genesis = () => {
         documentURI, // Document URI
         documentHash, // Document hash
         decimals, // Decimals
-        '', // Make sure that you add 0 bytes here.
-        //baton, // Minting baton vout
+       // '', // Make sure that you add 0 bytes here.
+        baton, // Minting baton vout
         initialQuantity
       ])
       .withHardcodedFee(minerFee)
-       .to(slpRecipient, dust)
-       .to(contract.address, change)
+      //.to(slpRecipient, 546)
+      .to(contract.address, change)
       .send();
     // // .meep();
-    console.log('transaction details:', stringify(tx));
+    console.log('transaction details:', JSON.stringify(tx));
 
   }
 

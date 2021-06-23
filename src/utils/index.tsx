@@ -7,7 +7,7 @@ const bitbox = new BITBOX();
 const transactionBuilder = new bitbox.TransactionBuilder('mainnet');
 
 
-export class ContractHelper {
+export class Signer {
   constructor(public keypair: ECPair) {}
 
   // Encode a baton and quantity into a byte sequence of 8 bytes (4 bytes per value)
@@ -19,10 +19,10 @@ export class ContractHelper {
     return Buffer.concat([lhs, rhs]);
   }
 
-  // Encode a baton and quantity into a byte sequence of 8 bytes (4 bytes per value)
-  createSingleMessage(quantity: number): Buffer {
-    const lhs = Buffer.alloc(8, 0);
-    new Script().encodeNumber(quantity).copy(lhs);
+  // Encode a baton and messageType into a byte sequence of 8 bytes (4 bytes per value)
+  createSingleMessage(messageType: number): Buffer {
+    const lhs = Buffer.alloc(4, 0);
+    new Script().encodeNumber(messageType).copy(lhs);
     return lhs
   }
 
@@ -31,11 +31,10 @@ export class ContractHelper {
   }
 }
 
-
-export const reclaimAmount = async (contract, keyPair) => {
+export const reclaimAmount = async (address, keyPair) => {
 
   let amount = 0
-  const accountDetails = await bitbox.Address.utxo(contract.address);
+  const accountDetails = await bitbox.Address.utxo(address);
   //@ts-ignore
   const accountutxos = accountDetails.utxos;
   //const accountutxos = await account.getUtxos();

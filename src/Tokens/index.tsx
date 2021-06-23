@@ -8,8 +8,8 @@ const SLP = () => {
       <div className="title mt-3">SLP</div>
       <div className="columns">
         <Genesis></Genesis>
-        <Mint></Mint>
-        <Send></Send>
+        {/* <Mint></Mint>
+        <Send></Send> */}
       </div>
     </>
   )

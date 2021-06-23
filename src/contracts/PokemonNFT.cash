@@ -42,9 +42,14 @@ contract Pokemon(bytes20 owner) {
             0xff, // Trick: Keep this number above the number of transactions you would expect.
             0x0000000000001388
         ]);
-
+        // Calculate leftover money after fee (1000 sats)
+        // Add change output if the remainder can be used
+        // otherwise donate the remainder to the miner
+        // int minerFee = 1000;
         int dust = 546;
         int changeAmount = int(bytes(tx.value)) - dust - minerFee;
+
+        // require(changeAmount > dust);
 
         if (changeAmount >= minerFee) {
             bytes34 recipient = new OutputP2PKH(bytes8(dust), recipientPkh);

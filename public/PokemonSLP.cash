@@ -1,9 +1,8 @@
-pragma cashscript ^0.6.0;
+pragma cashscript ^0.6.3;
 
 contract Pokemon(bytes20 owner) {
     // Require pk to match stored owner and signature to match
-    function spend(pubkey pk, sig s) {
-        require(hash160(pk) == owner);
+    function reclaim(pubkey pk, sig s) {
         require(checkSig(s, pk));
     }
 
@@ -13,17 +12,22 @@ contract Pokemon(bytes20 owner) {
     function createToken(
         pubkey pk,
         sig s,
+        bytes20 recipientPkh,
         string actionType,
         string symbol,
         string name,
         string documentURI,
         string documentHash,
         int minerFee,
+        string memoText
     ) {  
         require(hash160(pk) == owner);
         require(checkSig(s, pk));
 
-        bytes announcement = new OutputNullData([
+        int dust = 546;
+
+        bytes token = new OutputNullData([
+            //bytes(lokadBin),
             0x534c5000,
             0x01,
             bytes(actionType),
@@ -35,16 +39,22 @@ contract Pokemon(bytes20 owner) {
             0x02,
             0x000000E8D4A51000
         ]);
-        // Calculate leftover money after fee (1000 sats)
-        // Add change output if the remainder can be used
-        // otherwise donate the remainder to the miner
-        // int minerFee = 1000;
-        int changeAmount = int(bytes(tx.value)) - minerFee;
-        if (changeAmount >= (minerFee / 2)) {
+
+        bytes memo = new OutputNullData([
+            0x6d02,
+            bytes(memoText)
+        ]);
+
+        int changeAmount = int(bytes(tx.value)) - minerFee - dust;
+        if (changeAmount >= dust) {
+            bytes34 recipient = new OutputP2PKH(bytes8(dust), recipientPkh);
+            // Get the change back to the contract i.e Pay to Script Hash which is the current contract.
             bytes32 change = new OutputP2SH(bytes8(changeAmount), hash160(tx.bytecode));
-            require(tx.hashOutputs == hash256(announcement + change));
+            require(hash256(token + recipient + change + memo) == tx.hashOutputs);
+            //require(hash256(token + recipient + change) == tx.hashOutputs);
         } else {
-            require(tx.hashOutputs == hash256(announcement));
+            require(hash256(token) == tx.hashOutputs);
         }
+
     }
 }

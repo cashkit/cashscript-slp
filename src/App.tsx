@@ -1,5 +1,6 @@
 
 import NFT from './nft';
+import SLP from './tokens';
 
 import './App.css'
 import "../node_modules/bulma/bulma.sass";
@@ -12,8 +13,8 @@ function App() {
           Tokens on Bitcoin Cash(BCH)
       </header>
       <div className="p-6">
-        {/* <SLP></SLP> */}
-        <NFT></NFT>
+        <SLP></SLP>
+        {/* <NFT></NFT> */}
       </div>
     </div>
   );

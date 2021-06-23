@@ -1,26 +1,22 @@
 import { BITBOX } from 'bitbox-sdk';
 
 const bitbox = new BITBOX();
-// Initialise HD node and alice's keypair
-const rootSeed = bitbox.Mnemonic.toSeed('CashSciptLambo');
+// Initialise HD node and user's keypair
+const rootSeed = bitbox.Mnemonic.toSeed('CashScriptLambergini');
 const hdNode = bitbox.HDNode.fromSeed(rootSeed);
 
-const alice = bitbox.HDNode.toKeyPair(bitbox.HDNode.derive(hdNode, 0));
-const bob = bitbox.HDNode.toKeyPair(bitbox.HDNode.derive(hdNode, 1));
+const user = bitbox.HDNode.toKeyPair(bitbox.HDNode.derive(hdNode, 0));
 
-const alicePk = bitbox.ECPair.toPublicKey(alice);
+const userPk = bitbox.ECPair.toPublicKey(user);
 
-// console.log(alice.getAddress())
-// bitbox.Address.utxo(alice.getAddress())
+const userPkh = bitbox.Crypto.hash160(userPk);
+
+// console.log(user.getAddress())
+// bitbox.Address.utxo(user.getAddress())
     // .then((res) => console.log(res))
     // .catch((e) => console.log(e))
 
 
-export const getAliceWallet = () => {
-  return [alice, alicePk]
+export const getUserWallet = () => {
+  return [user, userPk, userPkh]
 }
-
-export const getBobWallet = () => {
-  return bob
-}
-

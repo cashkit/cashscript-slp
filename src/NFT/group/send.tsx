@@ -1,10 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { BITBOX } from 'bitbox-sdk';
-import { SignatureTemplate } from 'cashscript';
-import { stringify } from '@bitauth/libauth';
-import { getAliceWallet } from '../../wallet';
-import { getNFTContract } from '../../contracts';
-
 
 const TokenTypes = {
   One: '0x01',

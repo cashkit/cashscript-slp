@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { BITBOX } from 'bitbox-sdk';
 import { SignatureTemplate } from 'cashscript';
 import { stringify } from '@bitauth/libauth';
-import { getAliceWallet } from '../../wallet';
+import { getUserWallet } from '../../wallet';
 import { getNFTContract } from '../../contracts';
 import { reclaimAmount } from '../../utils';
 import { Utils } from 'slpjs';
@@ -92,8 +92,8 @@ const Genesis = () => {
   }
 
   const handleSubmit = async () => {
-    const [alice, alicePk] = getAliceWallet()
-    const [bob, bobPk] = getAliceWallet()
+    const [alice, alicePk] = getUserWallet()
+    const [bob, bobPk] = getUserWallet()
     const contract = await getNFTContract(alicePk)
 
     let inputVal = 0

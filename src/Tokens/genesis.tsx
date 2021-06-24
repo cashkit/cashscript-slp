@@ -7,7 +7,7 @@ import { getUserWallet } from '../wallet';
 import { getSLPContract } from '../contracts';
 import { Signer } from '../utils';
 import { Utils } from 'slpjs';
-import { hexToBin, binToHex } from '@bitauth/libauth'
+import { hexToBin, binToHex, utf8ToBin } from '@bitauth/libauth'
 
 
 const bitbox = new BITBOX();
@@ -65,6 +65,15 @@ const useContract = (userPkh) => {
 }
 
 const Genesis = () => {
+  const myString = "m";
+  const encoded = new Buffer(myString).toString('hex');
+  console.log(encoded)
+
+  console.log('0x534c5000'.substring(2))
+  const lokadhtb = hexToBin('0x534c5000'.substring(2))
+  console.log(lokadhtb)
+
+
   const lokadId = '0x534c5000'
   const [tokenType, setTokenType] = useState(TokenTypes.One)
   const [actionType, setActionType] = useState(ActionTypes.GENESIS)
@@ -128,14 +137,12 @@ const Genesis = () => {
     .to("bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0", change)
     .send()
 
-    console.log(tx)
-
     setTx("Tx status: ", JSON.stringify(tx))
   }
 
   const handleSubmit = async () => {
 
-    const minerFee = 2225 // Close to min relay fee of the network.
+    const minerFee = 1225 // Close to min relay fee of the network.
     const dust = 546
     const change = amount - minerFee - dust
     setMetaData(`Values in sats: Input Amount: ${amount}, Miner Fee: ${minerFee} change: ${change}`)
@@ -165,52 +172,55 @@ const Genesis = () => {
     const signerMessage = signer.createSingleMessage(0x534c5000);
     const signerSignature = signer.signMessage(signerMessage);
 
-    console.log(signerMessage)
 
     const cashAddr = bitbox.ECPair.toCashAddress(user);
     const slpRecipient = Utils.toSlpAddress(cashAddr)
-    console.log(slpRecipient)
     
     // const reclaimAddr = 'bitcoincash:qz2g9hg86tpdk0rhk9qg45s6nj3xqqerkvcmz5rrq0'
 
     const strr = 'BCH is AWESOME'
 
-    // SLP\x00
+
+    const lokadIdBin = hexToBin(lokadId.substring(2))
+    const tokenTypeBin = hexToBin(tokenType.substring(2))
+    const decimalsBin = hexToBin(decimals.substring(2))
+    const batonBin = hexToBin(baton.substring(2))
+    const initialQuantityBin = hexToBin(initialQuantity.substring(2))
+    
     const tx = await contract.functions
       .createToken(
         userPk,
         new SignatureTemplate(user),
-        //signerMessage,
         userPkh,
+        lokadIdBin,
+        tokenTypeBin,
         actionType,
         symbol,
         name,
         documentURI,
         documentHash,
+        decimalsBin,
+        batonBin,
+        initialQuantityBin,
         minerFee,
-        strr
       ).withOpReturn([
-        //hexii,
-        //lokadBin,
-        lokadId, // Lokad ID
-        tokenType, // Token type
-        actionType, // Action
-        symbol, // Symbol
-        name, // Name
-        documentURI, // Document URI
-        documentHash, // Document hash
-        decimals, // Decimals
-        baton, // Minting baton vout
-        //'0x1000000',
+        lokadId,
+        tokenType,
+        actionType,
+        symbol,
+        name,
+        documentURI,
+        documentHash,
+        decimals,
+        baton,
         initialQuantity
-        //'0x000000E8D4A51000' // Initial quantity
       ])
       .to(slpRecipient, dust)
       .to(contract.address, change)
-      .withOpReturn([
-        '0x6d02',
-        strr,
-      ])
+      // .withOpReturn([
+      //   '0x6d02',
+      //   strr,
+      // ])
       .withHardcodedFee(minerFee)
       //.build()
       .send();

@@ -1,5 +1,78 @@
-# Pokemon NFT Demo
+# Pokemon SLP Demo
 
+<h3> TOKENS </h3>
+
+Valid transaction using the PokemonSLP.cash contract with single OP_RETURN: https://explorer.bitcoin.com/bch/tx/a71eae6cd8864dca5e184f49093f1b0b9cb49572959354f9ad72e5d0c0a3fa8c
+
+Valid transaction using the PokemonSLP.cash contract with 2 OP_RETURN (SLP AND MEMO): https://explorer.bitcoin.com/bch/tx/9d1893ddedd9f1d041521c3f98508883856c3efde2406980dd3aa7af1c1b19bb
+
+
+```js
+pragma cashscript ^0.6.3;
+
+contract Pokemon(bytes20 owner) {
+    // Require pk to match stored owner and signature to match
+    function reclaim(pubkey pk, sig s) {
+        require(checkSig(s, pk));
+    }
+
+    /**
+    * Can only be called by the creater of the contract.
+    */
+    function createToken(
+        pubkey pk,
+        sig s,
+        bytes20 recipientPkh,
+        bytes lokadId,
+        bytes tokenType,
+        string actionType,
+        string symbol,
+        string name,
+        string documentURI,
+        string documentHash,
+        bytes decimals,
+        bytes baton,
+        bytes initialQuantity,
+        int minerFee,
+        //string memoText
+    ) {  
+        require(hash160(pk) == owner);
+        require(checkSig(s, pk));
+
+        int dust = 546;
+
+        bytes token = new OutputNullData([
+            lokadId,
+            tokenType,
+            bytes(actionType),
+            bytes(symbol),
+            bytes(name),
+            bytes(documentURI),
+            bytes(documentHash),
+            decimals,
+            baton,
+            initialQuantity
+        ]);
+
+        // bytes memo = new OutputNullData([
+        //     0x6d02,
+        //     bytes(memoText)
+        // ]);
+
+        int changeAmount = int(bytes(tx.value)) - minerFee - dust;
+        if (changeAmount >= dust) {
+            bytes34 recipient = new OutputP2PKH(bytes8(dust), recipientPkh);
+            // Get the change back to the contract i.e Pay to Script Hash which is the current contract.
+            bytes32 change = new OutputP2SH(bytes8(changeAmount), hash160(tx.bytecode));
+            //require(hash256(token + recipient + change + memo) == tx.hashOutputs);
+            require(hash256(token + recipient + change) == tx.hashOutputs);
+        } else {
+            require(hash256(token) == tx.hashOutputs);
+        }
+
+    }
+}
+```
 
 <h3> Valid transactions </h3>
 

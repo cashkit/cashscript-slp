@@ -94,7 +94,6 @@ export const getNFTContract = async (pk) => {
 }
 
 export const getSLPContract = async (pk) => {
-  console.log(pk)
   const contractFetch = await fetch('PokemonSLP.cash') // Inside public folder.
   const source = await contractFetch.text();
   const artifact = compileString(source)

@@ -1,14 +1,12 @@
 pragma cashscript ^0.6.3;
 
-contract Pokemon(bytes20 owner) {
-    // Require pk to match stored owner and signature to match
+contract FT(bytes20 owner) {
+    // Warning: This method 'reclaim' should only be used in testing.
+    // Backdoor to reclaim funds,
     function reclaim(pubkey pk, sig s) {
         require(checkSig(s, pk));
     }
 
-    /**
-    * Can only be called by the creater of the contract.
-    */
     function createToken(
         pubkey pk,
         sig s,

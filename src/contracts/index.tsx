@@ -28,21 +28,21 @@ export const getNFTContract = async (pk) => {
   const artifact = compileString(`
   pragma cashscript ^0.6.0;
 
-  contract Pokemon(bytes20 owner) {
-      // Require pk to match stored owner and signature to match
+  contract NFT(bytes20 owner) {
+      // Warning: This method 'reclaim' should only be used in testing.
+      // Backdoor to reclaim funds,
       function reclaim(pubkey pk, sig s) {
           require(hash160(pk) == owner);
           require(checkSig(s, pk));
       }
   
+      // Warning: This method 'createNFTChild' should only be used in testing.
+      // Backdoor to reclaim funds,
       function createNFTChild(pubkey pk, sig s) {
           require(hash160(pk) == owner);
           require(checkSig(s, pk));
       }
   
-      /**
-      * Can only be called by the creater of the contract.
-      */
       function createNFTGroup(
           pubkey pk,
           sig s,
@@ -94,7 +94,7 @@ export const getNFTContract = async (pk) => {
 }
 
 export const getSLPContract = async (pk) => {
-  const contractFetch = await fetch('PokemonSLP.cash') // Inside public folder.
+  const contractFetch = await fetch('FT.cash') // Inside public folder.
   const source = await contractFetch.text();
   const artifact = compileString(source)
   const contract = getContract(artifact, pk)

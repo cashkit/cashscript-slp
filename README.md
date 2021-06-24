@@ -1,24 +1,23 @@
-# Pokemon SLP Demo
+# Cashscript SLP
 
 <h3> TOKENS </h3>
 
-Valid transaction using the PokemonSLP.cash contract with single OP_RETURN: https://explorer.bitcoin.com/bch/tx/a71eae6cd8864dca5e184f49093f1b0b9cb49572959354f9ad72e5d0c0a3fa8c
+Valid transaction using the FT.cash contract with single OP_RETURN: https://explorer.bitcoin.com/bch/tx/a71eae6cd8864dca5e184f49093f1b0b9cb49572959354f9ad72e5d0c0a3fa8c
 
-Valid transaction using the PokemonSLP.cash contract with 2 OP_RETURN (SLP AND MEMO): https://explorer.bitcoin.com/bch/tx/9d1893ddedd9f1d041521c3f98508883856c3efde2406980dd3aa7af1c1b19bb
+Valid transaction using the FT.cash contract with 2 OP_RETURN (SLP AND MEMO): https://explorer.bitcoin.com/bch/tx/9d1893ddedd9f1d041521c3f98508883856c3efde2406980dd3aa7af1c1b19bb
 
+<h5> FT.cash </h5>
 
 ```js
 pragma cashscript ^0.6.3;
 
-contract Pokemon(bytes20 owner) {
-    // Require pk to match stored owner and signature to match
+contract FT(bytes20 owner) {
+    // Warning: This method 'reclaim' should only be used in testing.
+    // Backdoor to reclaim funds,
     function reclaim(pubkey pk, sig s) {
         require(checkSig(s, pk));
     }
 
-    /**
-    * Can only be called by the creater of the contract.
-    */
     function createToken(
         pubkey pk,
         sig s,
@@ -74,6 +73,43 @@ contract Pokemon(bytes20 owner) {
 }
 ```
 
+<h5> Usage </h5>
+
+```js
+// Check the tokens/genesis.tsx
+
+// import { hexToBin } from '@bitauth/libauth'
+const lokadId = '0x534c5000'
+...
+
+const lokadIdBin = hexToBin(lokadId.substring(2))
+...
+
+const tx = await contract.functions
+  .createToken(
+    userPk,
+    new SignatureTemplate(user),
+    userPkh,
+    lokadIdBin,
+    ...
+    minerFee,
+  )
+  .withOpReturn([
+    lokadId,
+    ...
+    initialQuantity
+  ])
+  .to(slpRecipient, dust)
+  .to(contract.address, change)
+  // .withOpReturn([
+  //   '0x6d02',
+  //   strr,
+  // ])
+  .withHardcodedFee(minerFee)
+  //.build()
+  .send();
+```
+
 <h3> Valid transactions </h3>
 
 - NFT1-Group: https://explorer.bitcoin.com/bch/tx/110426292c63fe0db0932b4dc1c49594127e9b2e1a6d66a3e5696a830de9f3dd
@@ -88,26 +124,26 @@ contract Pokemon(bytes20 owner) {
 
 <h3> NFT1-Group & NFT1-Child contract. </h3>
 
-<h5> pokemon.cash </h5>
+<h5> NFT.cash </h5>
 
 ```js
 pragma cashscript ^0.6.0;
 
-contract Pokemon(bytes20 owner) {
-    // Require pk to match stored owner and signature to match
+contract NFT(bytes20 owner) {
+    // Warning: This method 'reclaim' should only be used in testing.
+    // Backdoor to reclaim funds,
     function reclaim(pubkey pk, sig s) {
         require(hash160(pk) == owner);
         require(checkSig(s, pk));
     }
 
+    // Warning: This method 'createNFTChild' should only be used in testing.
+    // Backdoor to reclaim funds,
     function createNFTChild(pubkey pk, sig s) {
         require(hash160(pk) == owner);
         require(checkSig(s, pk));
     }
 
-    /**
-    * Can only be called by the creater of the contract.
-    */
     function createNFTGroup(
         pubkey pk,
         sig s,
@@ -135,9 +171,14 @@ contract Pokemon(bytes20 owner) {
             0xff, // Trick: Keep this number above the number of transactions you would expect.
             0x0000000000001388
         ]);
-
+        // Calculate leftover money after fee (1000 sats)
+        // Add change output if the remainder can be used
+        // otherwise donate the remainder to the miner
+        // int minerFee = 1000;
         int dust = 546;
         int changeAmount = int(bytes(tx.value)) - dust - minerFee;
+
+        // require(changeAmount > dust);
 
         if (changeAmount >= minerFee) {
             bytes34 recipient = new OutputP2PKH(bytes8(dust), recipientPkh);
@@ -148,39 +189,6 @@ contract Pokemon(bytes20 owner) {
         }
     }
 }
-```
-
-<h5> Usage </h5>
-
-```js
-const tx = await contract.functions
-  .createNFTGroup(
-    alicePk,
-    new SignatureTemplate(alice),
-    alicePkh,
-    actionType,
-    symbol,
-    name,
-    documentURI,
-    documentHash,
-    minerFee
-  )
-  .withOpReturn([
-    lokadId,
-    tokenType,
-    actionType,
-    symbol,
-    name,
-    documentURI,
-    documentHash,
-    decimals,
-    baton,
-    initialQuantity
-  ])
-  .withHardcodedFee(minerFee)
-  .to(slpRecipient, dust)
-  .to(contract.address, change)
-  .send();
 ```
 
 <h5> Meep </h5>

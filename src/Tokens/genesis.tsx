@@ -7,7 +7,7 @@ import { getUserWallet } from '../wallet';
 import { getSLPContract } from '../contracts';
 import { Signer } from '../utils';
 import { Utils } from 'slpjs';
-import { hexToBin, binToHex, utf8ToBin } from '@bitauth/libauth'
+import { hexToBin} from '@bitauth/libauth'
 
 
 const bitbox = new BITBOX();
@@ -30,7 +30,6 @@ const defaulDocumentHash = 'CE114E4501D2F4E2DCEA3E17B546F339'
 const defaultDecimals = '0x08'
 const defaulBaton = '0x02'
 const defaultInitialQuantity = '0x000000E8D4A51000'
-//const defaultInitialQuantity = '100000000'
 
 
 const useContract = (userPkh) => {
@@ -65,15 +64,6 @@ const useContract = (userPkh) => {
 }
 
 const Genesis = () => {
-  const myString = "m";
-  const encoded = new Buffer(myString).toString('hex');
-  console.log(encoded)
-
-  console.log('0x534c5000'.substring(2))
-  const lokadhtb = hexToBin('0x534c5000'.substring(2))
-  console.log(lokadhtb)
-
-
   const lokadId = '0x534c5000'
   const [tokenType, setTokenType] = useState(TokenTypes.One)
   const [actionType, setActionType] = useState(ActionTypes.GENESIS)
